@@ -64,9 +64,9 @@ class UPIQRScanner:
             r'gpay://pay\?(.+)',
             r'bhim://pay\?(.+)'
         ]
-    
+
     def decode_qr_code(self, image_data: bytes) -> Optional[str]:
-        """Decode QR code from image bytes"""
+        """Decode QR code from image bytes with mobile optimization"""
         try:
             # Convert bytes to numpy array
             nparr = np.frombuffer(image_data, np.uint8)
@@ -76,30 +76,45 @@ class UPIQRScanner:
                 logger.error("Could not decode image")
                 return None
             
-            # Convert to grayscale for better QR detection
+            # Resize large images (common on mobile) for better processing
+            height, width = img.shape[:2]
+            if width > 1024 or height > 1024:
+                scale = min(1024/width, 1024/height)
+                new_width = int(width * scale)
+                new_height = int(height * scale)
+                img = cv2.resize(img, (new_width, new_height), interpolation=cv2.INTER_AREA)
+            
+            # Convert to grayscale
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             
-            # Detect and decode QR codes
-            qr_codes = pyzbar.decode(gray)
+            # Try multiple detection methods
+            detection_methods = [
+                # Method 1: Direct detection
+                lambda: pyzbar.decode(gray),
+                
+                # Method 2: Gaussian blur
+                lambda: pyzbar.decode(cv2.GaussianBlur(gray, (3, 3), 0)),
+                
+                # Method 3: Adaptive threshold
+                lambda: pyzbar.decode(cv2.adaptiveThreshold(
+                    gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
+                )),
+                
+                # Method 4: Histogram equalization
+                lambda: pyzbar.decode(cv2.equalizeHist(gray)),
+            ]
             
-            if not qr_codes:
-                # Try with different preprocessing
-                # Apply adaptive threshold
-                thresh = cv2.adaptiveThreshold(
-                    gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
-                    cv2.THRESH_BINARY, 11, 2
-                )
-                qr_codes = pyzbar.decode(thresh)
-            
-            if qr_codes:
-                # Return the first QR code data
-                return qr_codes[0].data.decode('utf-8')
+            for method in detection_methods:
+                qr_codes = method()
+                if qr_codes:
+                    return qr_codes[0].data.decode('utf-8')
             
             return None
             
         except Exception as e:
             logger.error(f"Error decoding QR code: {str(e)}")
             return None
+
     
     def parse_upi_url(self, qr_data: str) -> UPIDetails:
         """Parse UPI URL and extract parameters"""
