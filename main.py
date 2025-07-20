@@ -26,7 +26,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://qr-xi-sage.vercel.app/",  # Vercel domain
+        "https://qr-xi-sage.vercel.app",  # Vercel domain
         "http://localhost:3000",             # For local development
         "http://localhost:8000",             # For local backend testing
         "http://127.0.0.1:3000",            # Alternative localhost
