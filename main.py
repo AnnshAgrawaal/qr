@@ -22,12 +22,17 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Add CORS middleware
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://qr-xi-sage.vercel.app/", "http://localhost:3000"],
+    allow_origins=[
+        "https://qr-xi-sage.vercel.app/",  # Vercel domain
+        "http://localhost:3000",             # For local development
+        "http://localhost:8000",             # For local backend testing
+        "http://127.0.0.1:3000",            # Alternative localhost
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
