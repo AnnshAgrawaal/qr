@@ -26,15 +26,16 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://qr-xi-sage.vercel.app",  # Vercel domain
-        "http://localhost:3000",             # For local development
-        "http://localhost:8000",             # For local backend testing
-        "http://127.0.0.1:3000",            # Alternative localhost
+        "https://qr-xi-sage.vercel.app",  
+        "http://localhost:3000",
+        "http://localhost:8000", 
+        "http://127.0.0.1:3000",
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
 
 # Response models
 class UPIDetails(BaseModel):
