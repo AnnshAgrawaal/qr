@@ -25,7 +25,7 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://your-frontend-domain.vercel.app", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -192,10 +192,10 @@ async def scan_qr_code(file: UploadFile = File(...)):
     Scan UPI QR code from uploaded image and extract account details
     """
     try:
-        # Validate file type
-        if not file.content_type.startswith('image/'):
+        # Validate file type with None check
+        if not file.content_type or not file.content_type.startswith('image/'):
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail="Invalid file type. Please upload an image file."
             )
         
